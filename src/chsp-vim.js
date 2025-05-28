@@ -14,6 +14,7 @@ export class VimPatcher extends Component {
       {
         CodeMirror: window.CodeMirror,
         vim: this.vim,
+        settings: plugin.settings,
         cut: plugin.cut.bind(plugin),
       },
     );
@@ -35,7 +36,9 @@ export class VimPatcher extends Component {
     if (this.enabled && this.plugin.settings.moveByChineseWords) {
       this.enableMoveByChineseWords(this.vim);
     }
-    if (this.enabled && this.plugin.settings.moveTillChinesePunctuation) {
+    if (this.enabled && (
+      this.plugin.settings.moveTillChinesePunctuation || this.plugin.settings.moveTillChinesePinYin)
+    ) {
       this.enableMoveTillChinesePunctuation(this.vim);
     }
   }

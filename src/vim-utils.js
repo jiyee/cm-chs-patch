@@ -2,6 +2,7 @@
 // source: obsidian v1.1.12
 
 import { isChs } from "./utils.js";
+import { pinyin_first_letter_seq } from "./node-pinyin/pinyin";
 
 // 中英文标点映射
 const chinese_punctuation_mapping = {
@@ -22,9 +23,9 @@ const chinese_punctuation_mapping = {
 
 /**
  *
- * @param {{CodeMirror: typeof import("codemirror"); vim: any; cut(text: string): any[]}} ctx
+ * @param {{CodeMirror: typeof import("codemirror"); vim: any; settings: import("settings").ChsPatchSetting; cut(text: string): any[]}} ctx
  */
-export function utils({ vim, CodeMirror, cut }) {
+export function utils({ vim, CodeMirror, settings, cut }) {
   const vimGlobalState = vim.getVimGlobalState_();
   const Pos = CodeMirror.Pos;
   // #region from vim.js, no mod
@@ -136,11 +137,13 @@ export function utils({ vim, CodeMirror, cut }) {
 
     for (let i = 0; i < repeat; i++) {
       const line = cm.getLine(cur.line);
+      
       idx = charIdxInLine(start, line, character, forward, true);
 
       // #region mod
-      idx = idxbyChsPunctuation(character, start, line, forward, idx);
+      idx = idxbyChsPunctuationOrPinYin(character, start, line, forward, idx);
       // #endregion
+
       if (idx == -1) {
         return null;
       }
@@ -265,24 +268,28 @@ export function utils({ vim, CodeMirror, cut }) {
   // #endregion
 
   /** custom function */
-  function idxbyChsPunctuation(character, start, line, forward, idx) {
-    if (
-      character.length == 1 &&
-      chinese_punctuation_mapping[character] != undefined
-    ) {
-      const punc_char = chinese_punctuation_mapping[character];
-      const punc_idx = charIdxInLine(start, line, punc_char, forward, true);
+  function idxbyChsPunctuationOrPinYin(character, start, line, forward, idx) {
+    if (character.length == 1) {
+      if (settings.moveTillChinesePunctuation && chinese_punctuation_mapping[character] != undefined) {
+        character = chinese_punctuation_mapping[character];
+      } else if (settings.moveTillChinesePinYin && /[a-z]/.test(character)) {
+        line = pinyin_first_letter_seq(cut(line));
+      }
 
-      if (punc_idx == -1) {
+      const idxMapped = charIdxInLine(start, line, character, forward, true);
+
+      if (idxMapped == -1) {
         return idx;
       }
       if (idx == -1) {
-        return punc_idx;
+        return idxMapped;
       }
-      return forward ? Math.min(idx, punc_idx) : Math.max(idx, punc_idx);
+      return forward ? Math.min(idx, idxMapped) : Math.max(idx, idxMapped);
     }
+
     return idx;
   }
+
   function segmentAt(segments, pos) {
     let chunkBegin = 0,
       chunkEnd = 0;

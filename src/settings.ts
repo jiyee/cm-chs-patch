@@ -10,6 +10,7 @@ export interface ChsPatchSetting {
   dict: string;
   moveByChineseWords: boolean;
   moveTillChinesePunctuation: boolean;
+  moveTillChinesePinYin: boolean;
 }
 
 export const DEFAULT_SETTINGS: ChsPatchSetting = {
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: ChsPatchSetting = {
   dict: "",
   moveByChineseWords: true,
   moveTillChinesePunctuation: true,
+  moveTillChinesePinYin: false,
 };
 
 type SettingKeyWithType<T> = {
@@ -81,13 +83,19 @@ export class ChsPatchSettingTab extends PluginSettingTab {
       this.addToggle(containerEl, "moveByChineseWords")
         .setName("【Vim Mode】使用结巴分词移动光标")
         .setDesc(
-          "Motion w/e/b/ge 使用结巴分词移动光标 in Vim Normal Mode, 重启Obsidian生效",
+          "Motion w/e/b/ge 使用结巴分词移动光标 in Vim Normal Mode, 重启 Obsidian 生效",
         );
 
       this.addToggle(containerEl, "moveTillChinesePunctuation")
         .setName("【Vim Mode】f/t<character> 支持输入英文标点跳转到中文标点")
         .setDesc(
-          "Motion f/t<character> 支持输入英文标点跳转到中文标点 in Vim Normal Mode, 重启Obsidian生效",
+          "Motion f/t<character> 支持输入英文标点跳转到中文标点 in Vim Normal Mode, 重启 Obsidian 生效",
+        );
+
+      this.addToggle(containerEl, "moveTillChinesePinYin")
+        .setName("【Vim Mode】f/t<character> 支持输入拼音首字母跳转到中文汉字")
+        .setDesc(
+          "Motion f/t<character> 支持输入拼音首字母跳转到中文汉字 in Vim Normal Mode, 重启 Obsidian 生效",
         );
     }
   }
